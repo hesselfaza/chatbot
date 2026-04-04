@@ -1,0 +1,112 @@
+{
+  "name": "auto responder email",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Pendaftaran SIB Mandiri NF Academy Batch 4",
+        "formDescription": "Harap Isi Data Diri Anda.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Nama",
+              "fieldName": "Nama",
+              "placeholder": "Tuliskan Nama Anda",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Email",
+              "fieldName": "Email",
+              "placeholder": "Tuliskan Email Anda, Contoh: test@gmail.com",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Program",
+              "fieldType": "dropdown",
+              "fieldName": "Program",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "AI For Business"
+                  },
+                  {
+                    "option": "Codeless Data Science"
+                  },
+                  {
+                    "option": "DevOps Engineer"
+                  },
+                  {
+                    "option": "Mobile Apps"
+                  },
+                  {
+                    "option": "FullStack Developer"
+                  }
+                ]
+              },
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        0,
+        0
+      ],
+      "id": "8233e6b6-d9d3-4b37-a6b8-7d7554f896a6",
+      "name": "On form submission",
+      "webhookId": "af7d0f82-bd28-43e2-ae0d-3f8b0c68b6fe"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $json.Email }}",
+        "subject": "Informasi Pendaftaran SIBM NF Academy Batch 4",
+        "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    /* Reset dasar untuk kompatibilitas email client */\n    body { margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f0ebf8; }\n    .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }\n    .header { background-color: #673ab7; /* Warna Ungu Google Form */ color: #ffffff; padding: 24px; text-align: center; }\n    .header h1 { margin: 0; font-size: 20px; font-weight: 600; }\n    .content { padding: 30px; color: #333333; line-height: 1.6; }\n    .data-box { background-color: #f8f9fa; border-left: 4px solid #673ab7; padding: 15px; margin: 20px 0; border-radius: 4px; }\n    .data-row { margin-bottom: 10px; }\n    .label { font-weight: bold; color: #5f6368; font-size: 14px; }\n    .value { color: #202124; font-size: 16px; }\n    .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #eeeeee; }\n    .button { display: inline-block; background-color: #673ab7; color: #ffffff; text-decoration: none; padding: 10px 20px; border-radius: 4px; margin-top: 20px; font-weight: bold; }\n  </style>\n</head>\n<body>\n\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>Konfirmasi Pendaftaran<br>SIB Mandiri Batch 4 NF Academy</h1>\n    </div>\n\n    <div class=\"content\">\n      <p>Halo <strong>{{ $json[\"Nama\"] }}</strong>,</p>\n      \n      <p>Terima kasih telah melakukan pendaftaran. Data Anda telah berhasil kami terima di sistem NF Academy.</p>\n      \n      <p>Berikut adalah rincian data yang Anda kirimkan:</p>\n\n      <div class=\"data-box\">\n        <div class=\"data-row\">\n          <div class=\"label\">Nama Lengkap</div>\n          <div class=\"value\">{{ $json[\"Nama\"] }}</div>\n        </div>\n        \n        <div class=\"data-row\">\n          <div class=\"label\">Email Terdaftar</div>\n          <div class=\"value\">{{ $json[\"Email\"] }}</div>\n        </div>\n\n        <div class=\"data-row\">\n          <div class=\"label\">Program Pilihan</div>\n          <div class=\"value\">{{ $json.Program }}</div>\n        </div>\n      </div>\n\n      <p>Mohon cek kembali data di atas. Jika ada kesalahan atau pertanyaan lebih lanjut, silakan balas email ini.</p>\n      \n      <p>Selanjutnya, tim kami akan melakukan verifikasi dan menghubungi Anda untuk langkah berikutnya.</p>\n      \n      <br>\n      <p>Salam hangat,<br><strong>Tim Penerimaan NF Academy</strong></p>\n    </div>\n\n    <div class=\"footer\">\n      &copy; 2025 NF Academy. All rights reserved.<br>\n      Email ini dikirim secara otomatis melalui sistem pendaftaran.\n    </div>\n  </div>\n\n</body>\n</html>\n\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "cdfadcd4-4170-4da0-b99c-889550d292dd",
+      "name": "Send a message",
+      "webhookId": "d2589675-5be8-42bb-8522-40184f3186bf",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "p9C11IvYkLvz1gIh",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "58ede944-5175-4a44-b872-31a0f1abb849",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b7d0d8d05552af987471c130c5fe82557379d9aa61d65e5fce12388cc53b90a8"
+  },
+  "id": "1Oo83D937FykuHIL",
+  "tags": []
+}
