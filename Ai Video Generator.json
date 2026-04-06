@@ -1,0 +1,330 @@
+{
+  "name": "Ai Video Generator",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Generate Gambar Konten Otomatis",
+        "formDescription": "Isi Informasi Dibawah Ini Untuk Memulai Proses Generate Gambar",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Prompt"
+            },
+            {
+              "fieldLabel": "img_url"
+            },
+            {
+              "fieldLabel": "task_type"
+            },
+            {
+              "fieldLabel": "api_key"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -1008,
+        -80
+      ],
+      "id": "2d90e897-6015-48ea-a46f-4ebd894e0228",
+      "name": "Submit Text Prompt Untuk Generate Gambar",
+      "webhookId": "228de402-753a-4a26-b5f0-da1987bd2f71"
+    },
+    {
+      "parameters": {
+        "url": "https://api.kie.ai/api/v1/jobs/recordInfo",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "taskId",
+              "value": "={{ $json.data.taskId }}"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$node[\"Submit Text Prompt Untuk Generate Gambar\"].json[\"api_key\"]}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -336,
+        -144
+      ],
+      "id": "5e231314-4c3d-472e-965c-9092cb9c840d",
+      "name": "Mendapatkan status generate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "474ee66b-fe9f-409f-a3b6-8d315f1dae8a",
+              "leftValue": "success",
+              "rightValue": "={{ $json.data.state }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -112,
+        -80
+      ],
+      "id": "30452c90-c2e5-4b0f-989d-43d1b4e06f4b",
+      "name": "check jika generate sudah selesai"
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = JSON.parse($json.data.resultJson);\n\nreturn [{\n  videoUrl: result.resultUrls?.[0] || null\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        112,
+        -80
+      ],
+      "id": "4363d2dd-eecc-47f6-b98f-77c4805014ff",
+      "name": "Format Result"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.kie.ai/api/v1/jobs/createTask",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "content-type",
+              "value": "application/json"
+            },
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{ $json.api_key }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"grok-imagine/image-to-video\",\n  \"input\": {\n    \"image_urls\": [\n      \"{{$json.img_url}}\"\n    ],\n    \"prompt\": \"{{$json.Prompt}}\",\n    \"mode\": \"normal\",\n    \"duration\": \"6\",\n    \"resolution\": \"480p\"\n  }\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -784,
+        -80
+      ],
+      "id": "f054554a-37f3-4278-ba59-2196768e15e0",
+      "name": "Mengirim Video Generation Request Ke KIE.AI API"
+    },
+    {
+      "parameters": {
+        "amount": 20
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -560,
+        -80
+      ],
+      "id": "b3b09f2b-f411-482d-bb93-117c3bbe724b",
+      "name": "Menunggu proses generate video",
+      "webhookId": "58c58d45-0442-4b9f-b399-b140b02c21e0"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.videoUrl }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        336,
+        -80
+      ],
+      "id": "b5eb022a-54ff-4d58-97a4-44a8d571fb8e",
+      "name": "Download Video"
+    },
+    {
+      "parameters": {
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1UXxN_Vs3HVk6L9NDpkpPZnN3GAqGXgRQ",
+          "mode": "list",
+          "cachedResultName": "ASET TUGAS STUDI INDEPENDEN",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1UXxN_Vs3HVk6L9NDpkpPZnN3GAqGXgRQ"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        560,
+        -80
+      ],
+      "id": "af1d1656-a81b-4e85-9778-cd8a7d5c588f",
+      "name": "Upload Video",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "tjx1msYgxmKyiH9n",
+          "name": "Google Drive account"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Submit Text Prompt Untuk Generate Gambar": [
+      {
+        "json": {
+          "Prompt": "buatkan video dari gambar ini",
+          "img_url": "https://drive.google.com/uc?export=download&id=1PNFvv2r_OhimptShvhCW_vOzeS96gDWQ",
+          "task_type": "",
+          "api_key": "85f2b4640923d3592991902f1dee8092",
+          "submittedAt": "2026-04-06T10:06:38.225+07:00",
+          "formMode": "test"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Submit Text Prompt Untuk Generate Gambar": {
+      "main": [
+        [
+          {
+            "node": "Mengirim Video Generation Request Ke KIE.AI API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mendapatkan status generate": {
+      "main": [
+        [
+          {
+            "node": "check jika generate sudah selesai",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "check jika generate sudah selesai": {
+      "main": [
+        [
+          {
+            "node": "Format Result",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Menunggu proses generate video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Result": {
+      "main": [
+        [
+          {
+            "node": "Download Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mengirim Video Generation Request Ke KIE.AI API": {
+      "main": [
+        [
+          {
+            "node": "Menunggu proses generate video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Menunggu proses generate video": {
+      "main": [
+        [
+          {
+            "node": "Mendapatkan status generate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Video": {
+      "main": [
+        [
+          {
+            "node": "Upload Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "4464b774-7b94-4bcd-a4b3-b9bbe237c733",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b7d0d8d05552af987471c130c5fe82557379d9aa61d65e5fce12388cc53b90a8"
+  },
+  "id": "rsnP19SY6q3Z0qvw",
+  "tags": []
+}
