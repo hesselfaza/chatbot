@@ -1,0 +1,295 @@
+{
+  "name": "Auto Posting Scheduler",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        0
+      ],
+      "id": "2b2cefed-48b1-40c8-92d8-41e85c124913",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1RIMqF9H4ib9PPULCkhG4kmUEAw-Jwfln4ZR0G5CARHU",
+          "mode": "list",
+          "cachedResultName": "Auto Posting Scheduler",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RIMqF9H4ib9PPULCkhG4kmUEAw-Jwfln4ZR0G5CARHU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RIMqF9H4ib9PPULCkhG4kmUEAw-Jwfln4ZR0G5CARHU/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        208,
+        0
+      ],
+      "id": "6230ee98-9173-40f7-a8ed-7f41058ccb15",
+      "name": "Ambil Data Posting",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "k8vOqNHttP2nLhma",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst now = DateTime.now().setZone('Asia/Jakarta');\nconst postsToSend = [];\n\nfor (const item of items) {\n  const row = item.json;\n  \n  const status = (row.Status || \"\").toString().trim();\n  const dateStr = (row['Scheduled Date'] || \"\").toString().trim();\n  const timeStr = (row['Scheduled Time'] || \"\").toString().trim();\n\n  if (status === 'Pending' && dateStr && timeStr) {\n    try {\n      const dateParts = dateStr.split('/');\n      if (dateParts.length !== 3) continue;\n\n      const day = dateParts[0].padStart(2, '0');\n      const month = dateParts[1].padStart(2, '0');\n      const year = dateParts[2];\n\n      const timeParts = timeStr.split(':');\n      const hour = timeParts[0].padStart(2, '0');\n      const minute = (timeParts[1] || \"00\").padStart(2, '0');\n      const second = (timeParts[2] || \"00\").padStart(2, '0');\n\n      const isoString = `${year}-${month}-${day}T${hour}:${minute}:${second}`;\n      const scheduledTime = DateTime.fromISO(isoString, { zone: 'Asia/Jakarta' });\n\n      if (scheduledTime.isValid && scheduledTime <= now) {\n        postsToSend.push(item);\n      }\n    } catch (e) {\n      console.error(\"Error parsing ID: \" + row.ID, e);\n    }\n  }\n}\n\nreturn postsToSend;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "2262b7c6-67b3-4847-b7a2-5c726fed0fa9",
+      "name": "Filter Ready Post "
+    },
+    {
+      "parameters": {
+        "chatId": "1054283386",
+        "text": "={{ $json.Content }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        0
+      ],
+      "id": "f7ae042a-ff9f-43d6-b39c-0397a70ea8ed",
+      "name": "Send a text message",
+      "webhookId": "708d7c9f-4794-4890-849d-6eb76eb747bd",
+      "credentials": {
+        "telegramApi": {
+          "id": "uyp76d1EJRn1jYfu",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6e157e1c-4c8c-4f85-8319-99da492727ba",
+              "name": "row_number",
+              "value": "={{ $('Filter Ready Post ').item.json.row_number }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        832,
+        0
+      ],
+      "id": "68711aa9-8f3b-4168-bd57-9d219777069a",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1RIMqF9H4ib9PPULCkhG4kmUEAw-Jwfln4ZR0G5CARHU",
+          "mode": "list",
+          "cachedResultName": "Auto Posting Scheduler",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RIMqF9H4ib9PPULCkhG4kmUEAw-Jwfln4ZR0G5CARHU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RIMqF9H4ib9PPULCkhG4kmUEAw-Jwfln4ZR0G5CARHU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ID": "={{ $('Filter Ready Post ').item.json.ID }}",
+            "Status": "Published"
+          },
+          "matchingColumns": [
+            "ID"
+          ],
+          "schema": [
+            {
+              "id": "ID",
+              "displayName": "ID",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Content",
+              "displayName": "Content",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Scheduled Date",
+              "displayName": "Scheduled Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Scheduled Time",
+              "displayName": "Scheduled Time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1040,
+        0
+      ],
+      "id": "928506b8-c124-432d-bbef-8507db0d9391",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "k8vOqNHttP2nLhma",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Ambil Data Posting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ambil Data Posting": {
+      "main": [
+        [
+          {
+            "node": "Filter Ready Post ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Ready Post ": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "3b207dce-ae67-46e1-afbe-abd169601000",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b7d0d8d05552af987471c130c5fe82557379d9aa61d65e5fce12388cc53b90a8"
+  },
+  "id": "DgLB3xhkAYnMWWA0",
+  "tags": []
+}
